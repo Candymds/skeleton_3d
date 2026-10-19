@@ -1,0 +1,203 @@
+<title>Cráneo articulado</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Visor de taller: el modelo ocupa la pantalla, los controles quedan en una barra inferior. */
+:root {
+  --bg: #e9e6df;
+  --panel: #f6f4ef;
+  --fg: #23262b;
+  --muted: #62676f;
+  --line: #cfcac0;
+  --accent: #c2410c;
+  --accent-fg: #ffffff;
+  --track: #d8d3c7;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171c; --panel: #1c2027; --fg: #e8e6e0; --muted: #98a0ab;
+    --line: #2d333c; --accent: #f08a4b; --accent-fg: #1a1209; --track: #323944;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171c; --panel: #1c2027; --fg: #e8e6e0; --muted: #98a0ab;
+  --line: #2d333c; --accent: #f08a4b; --accent-fg: #1a1209; --track: #323944;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); display: flex; flex-direction: column; overflow: hidden; }
+#stage { position: relative; flex: 1; min-height: 0; touch-action: none; }
+#stage canvas { display: block; width: 100%; height: 100%; }
+.badge {
+  position: absolute; top: 10px; left: max(16px, env(safe-area-inset-left, 0px));
+  font: 500 12px/1.3 var(--font-data); color: var(--muted); letter-spacing: .02em;
+  pointer-events: none;
+}
+.badge b { color: var(--fg); font-weight: 600; }
+#panel {
+  background: var(--panel); border-top: 1px solid var(--line);
+  padding-block: 12px 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 12px;
+}
+.readout { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; }
+.readout span { color: var(--muted); }
+.readout strong { color: var(--fg); font-weight: 600; }
+label.slider { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+input[type=range] { width: 100%; height: 32px; accent-color: var(--accent); background: transparent; margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: 500 14px var(--font-ui); color: var(--fg); background: transparent;
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; min-height: 44px; cursor: pointer;
+}
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.views { margin-left: auto; display: flex; gap: 8px; }
+@media (max-width: 480px) { .views { margin-left: 0; } button { flex: 1 1 auto; } }
+</style>
+
+<div id="stage"><div class="badge" id="badge"></div></div>
+<div id="panel">
+  <div class="readout"><div><span>Servo</span> <strong id="rServo">0°</strong></div><div><span>Mandíbula</span> <strong id="rJaw">0.0°</strong></div><div><span>Escala</span> <strong>70 %</strong></div></div>
+  <label class="slider" for="servo">Posición del servo (0° cerrada, 60° abierta)
+    <input id="servo" type="range" min="0" max="60" step="0.5" value="0"></label>
+  <div class="row">
+    <button id="talk" aria-pressed="false">Hablar</button>
+    <button id="cut" aria-pressed="false">Corte lateral</button>
+    <button id="cap" aria-pressed="true">Tapa</button>
+    <button id="mech" aria-pressed="true">Servo y enlace</button>
+    <button id="edges" aria-pressed="false">Aristas</button>
+    <div class="views">
+      <button data-view="front">Frente</button>
+      <button data-view="side">Lado</button>
+      <button data-view="below">Abajo</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const DATA = __DATA__;
+const P = DATA.params;
+const b64 = (s, T) => { const bin = atob(s), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new T(u.buffer); };
+const geo = (m) => { const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(b64(m.v, Float32Array), 3));
+  g.setIndex(new THREE.BufferAttribute(b64(m.i, Uint32Array), 1)); return g; };
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.localClippingEnabled = true;
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 5, 2000);
+camera.up.set(0, 0, 1);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.target.set(0, 5, 38);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 0.85));
+const key = new THREE.DirectionalLight(0xffffff, 0.8); key.position.set(150, 250, 300); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.35); fill.position.set(-250, -100, 80); scene.add(fill);
+
+const clip = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+const mat = (color, extra) => new THREE.MeshStandardMaterial(Object.assign({ color, flatShading: true, roughness: .75, metalness: 0, clippingPlanes: [], side: THREE.DoubleSide }, extra));
+const matBone = mat(0xe6dfcd), matJaw = mat(0xd9c9a3), matServo = mat(0x3b4a63), matLink = mat(0xe0702a), matHorn = mat(0xb9c2d0);
+
+const edgeMat = new THREE.LineBasicMaterial({ color: 0x1b1f26, transparent: true, opacity: 0.4, clippingPlanes: [] });
+const edgeLines = [];
+function addEdges(mesh) { const l = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 20), edgeMat); l.visible = false; mesh.add(l); edgeLines.push(l); }
+const cranium = new THREE.Mesh(geo(DATA.cranium), matBone); scene.add(cranium); addEdges(cranium);
+const cap = new THREE.Mesh(geo(DATA.cap), matBone); scene.add(cap); addEdges(cap);
+
+const pivot = new THREE.Vector3(0, P.pivot_y, P.pivot_z);
+const jawGroup = new THREE.Group(); jawGroup.position.copy(pivot);
+const jaw = new THREE.Mesh(geo(DATA.jaw), matJaw); jaw.position.copy(pivot).multiplyScalar(-1);
+addEdges(jaw); jawGroup.add(jaw); scene.add(jawGroup);
+
+const mech = new THREE.Group(); scene.add(mech);
+mech.add(new THREE.Mesh(geo(DATA.servo), matServo));
+
+function bar(x0, x1, w, mt) {            // barra en el plano Y-Z con extremos redondos, eje largo local Y
+  const g = new THREE.Group(); g.userData = { x0, x1, w, mt };
+  const len = 1, x = (x0 + x1) / 2, t = x1 - x0;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(t, 1, w), mt); body.position.x = x;
+  const cyl = () => { const c = new THREE.Mesh(new THREE.CylinderGeometry(w / 2, w / 2, t, 24).rotateZ(Math.PI / 2), mt); c.position.x = x; return c; };
+  const a = cyl(), b = cyl(); g.add(body, a, b); g.userData.parts = { body, a, b }; return g;
+}
+function place(g, p0, p1) {
+  const dy = p1[0] - p0[0], dz = p1[1] - p0[1], len = Math.hypot(dy, dz), { body, a, b } = g.userData.parts;
+  g.rotation.set(Math.atan2(dz, dy), 0, 0);
+  g.position.set(0, p0[0], p0[1]);
+  body.scale.y = len; body.position.y = len / 2; a.position.y = 0; b.position.y = len;
+}
+const horn = bar(12.8, 14.8, 7, matHorn), link = bar(16.8, 19.8, 7, matLink);
+mech.add(horn, link);
+
+function jawAngleFor(theta) {
+  const t = Math.max(0, Math.min(P.servo_travel, theta)), i = Math.floor(t), f = t - i, T = DATA.table;
+  return T[i] + (T[Math.min(i + 1, T.length - 1)] - T[i]) * f;
+}
+function leverPt(a) { const r = a * Math.PI / 180;
+  return [P.pivot_y + P.lever_dy * Math.cos(r) + P.lever_dz * Math.sin(r), P.pivot_z - P.lever_dy * Math.sin(r) + P.lever_dz * Math.cos(r)]; }
+function hornPt(th) { const r = (P.horn_phi0 - th) * Math.PI / 180; return [P.servo_y + P.horn_r * Math.cos(r), P.servo_z + P.horn_r * Math.sin(r)]; }
+
+const el = (id) => document.getElementById(id);
+function setServo(th) {
+  const a = jawAngleFor(th);
+  jawGroup.rotation.x = -a * Math.PI / 180;
+  const h = hornPt(th);
+  place(horn, [P.servo_y, P.servo_z], h);
+  place(link, h, leverPt(a));
+  el('rServo').textContent = th.toFixed(0) + '°';
+  el('rJaw').textContent = a.toFixed(1) + '°';
+}
+
+// Vistas
+const D = 330;
+const views = { front: [0, D, 70], side: [D, 0, 60], below: [60, 180, -230], iso: [190, 250, 140], cut: [-D, 60, 70] };
+function goView(n) { const v = views[n]; camera.position.set(v[0], v[1], v[2]); controls.target.set(0, 5, 38); controls.update(); }
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
+
+// Controles
+const slider = el('servo');
+let talking = false, t0 = 0;
+slider.addEventListener('input', () => { if (talking) toggleTalk(false); setServo(parseFloat(slider.value)); });
+function toggleTalk(on) { talking = on; el('talk').setAttribute('aria-pressed', on); t0 = performance.now(); }
+el('talk').addEventListener('click', () => toggleTalk(!talking));
+el('mech').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); mech.visible = on; });
+el('cap').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); cap.visible = on; });
+el('edges').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); edgeLines.forEach(l => l.visible = on); });
+el('cut').addEventListener('click', (e) => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on);
+  [matBone, matJaw, matServo, matLink, matHorn, edgeMat].forEach(m => { m.clippingPlanes = on ? [clip] : []; m.needsUpdate = true; });
+  if (on) goView('cut'); else goView('iso');
+});
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.fov = w / h < 0.9 ? 50 : 35; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+function themeBg() { const c = new THREE.Color(css('--bg')); renderer.setClearColor(c, 1); }
+themeBg();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeBg);
+new MutationObserver(themeBg).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+el('badge').innerHTML = '<b>skeleton_3d</b> · cráneo __DIMS__';
+goView('iso'); resize(); setServo(0);
+(function loop(now) {
+  requestAnimationFrame(loop);
+  if (talking) {
+    const s = (now - t0) / 1000;
+    const th = 30 + 22 * Math.sin(s * 9) * (0.55 + 0.45 * Math.sin(s * 2.3)) + 6 * Math.sin(s * 17);
+    const v = Math.max(0, Math.min(P.servo_travel, th)); slider.value = v; setServo(v);
+  }
+  controls.update(); renderer.render(scene, camera);
+})(performance.now());
+</script>
