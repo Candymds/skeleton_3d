@@ -28,10 +28,16 @@ data = {
     "cap": mesh(ROOT / "stl" / "test" / "tapa_ensamblada.stl"),
     "jaw": mesh(ROOT / "stl" / "test" / "mandibula_ensamblada.stl"),
     "servo": mesh(ROOT / "stl" / "test" / "servo.stl"),
+    "pedestal": mesh(ROOT / "stl" / "test" / "pedestal_ensamblado.stl"),
+    "lid": mesh(ROOT / "stl" / "test" / "tapa_inferior_ensamblada.stl"),
 }
 cr = trimesh.util.concatenate([trimesh.load(ROOT / "stl" / "craneo.stl"), trimesh.load(ROOT / "stl" / "test" / "tapa_ensamblada.stl")])
 ext = cr.bounds[1] - cr.bounds[0]
 dims = f"{ext[0]:.0f} × {ext[1]:.0f} × {ext[2]:.0f} mm"
-html = (Path(__file__).parent / "viewer_template.html").read_text().replace("__DATA__", json.dumps(data)).replace("__DIMS__", dims)
+pd = trimesh.util.concatenate([trimesh.load(ROOT / "stl" / "test" / "pedestal_ensamblado.stl"),
+                               trimesh.load(ROOT / "stl" / "test" / "tapa_inferior_ensamblada.stl")])
+pext = pd.bounds[1] - pd.bounds[0]
+ped_dims = f"{pext[0]:.0f} × {pext[1]:.0f} × {pext[2]:.0f} mm"
+html = (Path(__file__).parent / "viewer_template.html").read_text().replace("__DATA__", json.dumps(data)).replace("__DIMS__", dims).replace("__PED_DIMS__", ped_dims)
 (ROOT / "viewer.html").write_text(html)
 print(f"viewer.html: {len(html)/1024:.0f} KB")

@@ -5,7 +5,7 @@ import trimesh
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_DIM = 150.0
-PARTS = ["craneo", "tapa", "mandibula", "enlace"]
+PARTS = ["craneo", "tapa", "mandibula", "enlace", "pedestal", "tapa_inferior"]
 
 ok = True
 for name in PARTS:
