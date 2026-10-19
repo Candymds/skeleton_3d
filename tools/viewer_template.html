@@ -68,6 +68,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <button id="talk" aria-pressed="false">Hablar</button>
     <button id="cut" aria-pressed="false">Corte lateral</button>
     <button id="cap" aria-pressed="true">Tapa</button>
+    <button id="ped" aria-pressed="true">Pedestal</button>
     <button id="mech" aria-pressed="true">Servo y enlace</button>
     <button id="edges" aria-pressed="false">Aristas</button>
     <div class="views">
@@ -98,7 +99,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, 1, 5, 2000);
 camera.up.set(0, 0, 1);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.target.set(0, 5, 38);
+controls.enableDamping = true;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 0.85));
 const key = new THREE.DirectionalLight(0xffffff, 0.8); key.position.set(150, 250, 300); scene.add(key);
@@ -107,12 +108,15 @@ const fill = new THREE.DirectionalLight(0xffffff, 0.35); fill.position.set(-250,
 const clip = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
 const mat = (color, extra) => new THREE.MeshStandardMaterial(Object.assign({ color, flatShading: true, roughness: .75, metalness: 0, clippingPlanes: [], side: THREE.DoubleSide }, extra));
 const matBone = mat(0xe6dfcd), matJaw = mat(0xd9c9a3), matServo = mat(0x3b4a63), matLink = mat(0xe0702a), matHorn = mat(0xb9c2d0);
+const matPed = mat(0x5d6470), matLid = mat(0x434a55);
 
 const edgeMat = new THREE.LineBasicMaterial({ color: 0x1b1f26, transparent: true, opacity: 0.4, clippingPlanes: [] });
 const edgeLines = [];
 function addEdges(mesh) { const l = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 20), edgeMat); l.visible = false; mesh.add(l); edgeLines.push(l); }
 const cranium = new THREE.Mesh(geo(DATA.cranium), matBone); scene.add(cranium); addEdges(cranium);
 const cap = new THREE.Mesh(geo(DATA.cap), matBone); scene.add(cap); addEdges(cap);
+const ped = new THREE.Group(); scene.add(ped);
+[[DATA.pedestal, matPed], [DATA.lid, matLid]].forEach(([d, m]) => { const o = new THREE.Mesh(geo(d), m); addEdges(o); ped.add(o); });
 
 const pivot = new THREE.Vector3(0, P.pivot_y, P.pivot_z);
 const jawGroup = new THREE.Group(); jawGroup.position.copy(pivot);
@@ -160,7 +164,9 @@ function setServo(th) {
 // Vistas
 const D = 330;
 const views = { front: [0, D, 70], side: [D, 0, 60], below: [60, 180, -230], iso: [190, 250, 140], cut: [-D, 60, 70] };
-function goView(n) { const v = views[n]; camera.position.set(v[0], v[1], v[2]); controls.target.set(0, 5, 38); controls.update(); }
+// con el pedestal visible la cámara se aleja y apunta más abajo para encuadrar el conjunto
+function goView(n) { const v = views[n], k = ped.visible ? 1.35 : 1, tz = ped.visible ? 8 : 38;
+  camera.position.set(v[0] * k, v[1] * k, v[2] * k + tz - 38); controls.target.set(0, 5, tz); controls.update(); }
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
 
 // Controles
@@ -171,10 +177,11 @@ function toggleTalk(on) { talking = on; el('talk').setAttribute('aria-pressed', 
 el('talk').addEventListener('click', () => toggleTalk(!talking));
 el('mech').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); mech.visible = on; });
 el('cap').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); cap.visible = on; });
+el('ped').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); ped.visible = on; goView('iso'); });
 el('edges').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); edgeLines.forEach(l => l.visible = on); });
 el('cut').addEventListener('click', (e) => {
   const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on);
-  [matBone, matJaw, matServo, matLink, matHorn, edgeMat].forEach(m => { m.clippingPlanes = on ? [clip] : []; m.needsUpdate = true; });
+  [matBone, matJaw, matServo, matLink, matHorn, matPed, matLid, edgeMat].forEach(m => { m.clippingPlanes = on ? [clip] : []; m.needsUpdate = true; });
   if (on) goView('cut'); else goView('iso');
 });
 
@@ -189,7 +196,7 @@ themeBg();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeBg);
 new MutationObserver(themeBg).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-el('badge').innerHTML = '<b>skeleton_3d</b> · cráneo __DIMS__';
+el('badge').innerHTML = '<b>skeleton_3d</b> · cráneo __DIMS__ · pedestal __PED_DIMS__';
 goView('iso'); resize(); setServo(0);
 (function loop(now) {
   requestAnimationFrame(loop);
