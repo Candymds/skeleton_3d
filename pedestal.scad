@@ -15,7 +15,7 @@ $fn = 48;
 ped_top = ped_seat;                        // cara superior del pedestal
 ped_h   = ped_top - ped_bottom;
 c       = clearance;
-t       = wall;
+t       = ped_wall;
 
 // ---------------------------------------------------------------- 2D
 module rrect(x0, y0, x1, y1, r) {
