@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" font-family="Helvetica, Arial, sans-serif" font-size="14">
+  <rect width="1100" height="720" fill="#ffffff"/>
+  <style>
+    .box { fill: #f6f6f4; stroke: #333; stroke-width: 2; rx: 8; }
+    .title { font-size: 16px; font-weight: bold; fill: #111; }
+    .pin { font-size: 13px; fill: #222; }
+    .note { font-size: 12px; fill: #555; }
+    .v5 { stroke: #d62828; stroke-width: 4; fill: none; }
+    .gnd { stroke: #222; stroke-width: 4; fill: none; }
+    .sig { stroke-width: 3; fill: none; }
+    .dot { stroke: none; }
+  </style>
+
+  <text x="550" y="34" text-anchor="middle" font-size="22" font-weight="bold" fill="#111">Cráneo parlante · conexiones (alimentación USB 5 V, sin batería)</text>
+
+  <!-- Alimentación -->
+  <rect class="box" x="30" y="70" width="170" height="70"/>
+  <text class="title" x="115" y="98" text-anchor="middle">Cargador USB</text>
+  <text class="pin" x="115" y="120" text-anchor="middle">5 V · 2 A o más</text>
+  <line x1="200" y1="105" x2="250" y2="105" stroke="#666" stroke-width="6"/>
+  <text class="note" x="225" y="96" text-anchor="middle">cable</text>
+  <rect class="box" x="250" y="70" width="170" height="70"/>
+  <text class="title" x="335" y="98" text-anchor="middle">USB-C hembra</text>
+  <text class="pin" x="335" y="120" text-anchor="middle">(breakout, pared trasera)</text>
+  <text class="note" x="424" y="84" fill="#d62828">VBUS</text>
+  <text class="note" x="422" y="122" font-size="11">GND</text>
+
+  <!-- Raíl 5 V y GND -->
+  <path class="v5" d="M420 90 H470 V170 H1000"/>
+  <text x="1005" y="175" fill="#d62828" font-weight="bold">5 V</text>
+  <path class="gnd" d="M420 128 H450 V660 H1000"/>
+  <text x="1005" y="665" fill="#222" font-weight="bold">GND</text>
+
+  <!-- ESP32 -->
+  <rect class="box" x="140" y="230" width="230" height="330"/>
+  <text class="title" x="255" y="258" text-anchor="middle">ESP32 DevKit v1</text>
+  <text class="note" x="255" y="276" text-anchor="middle">(38 pines)</text>
+  <text class="pin" x="362" y="313" text-anchor="end">VIN (5V)</text>
+  <text class="pin" x="362" y="353" text-anchor="end">GPIO13</text>
+  <text class="pin" x="362" y="393" text-anchor="end">GPIO26</text>
+  <text class="pin" x="362" y="423" text-anchor="end">GPIO25</text>
+  <text class="pin" x="362" y="453" text-anchor="end">GPIO22</text>
+  <text class="pin" x="362" y="503" text-anchor="end">GPIO4</text>
+  <text class="pin" x="362" y="543" text-anchor="end">GND</text>
+  <text class="note" x="150" y="330">LED azul</text>
+  <text class="note" x="150" y="346">(GPIO2) = ocupado</text>
+  <!-- VIN y GND del ESP32 -->
+  <path class="v5" d="M370 308 H490 V170"/>
+  <circle class="dot" cx="490" cy="170" r="6" fill="#d62828"/>
+  <path class="gnd" d="M370 538 H450"/>
+  <circle class="dot" cx="450" cy="538" r="6" fill="#222"/>
+
+  <!-- Servo MG90S -->
+  <rect class="box" x="720" y="210" width="200" height="110"/>
+  <text class="title" x="820" y="236" text-anchor="middle">Servo MG90S</text>
+  <text class="pin" x="728" y="262">rojo  +5 V</text>
+  <text class="pin" x="728" y="284">marrón  GND</text>
+  <text class="pin" x="728" y="306">naranja  señal</text>
+  <path class="v5" d="M720 257 H640 V170"/>
+  <circle class="dot" cx="640" cy="170" r="6" fill="#d62828"/>
+  <path class="gnd" d="M720 279 H660 V660"/>
+  <circle class="dot" cx="660" cy="660" r="6" fill="#222"/>
+  <path class="sig" stroke="#f08c00" d="M370 348 H700 V301 H720"/>
+  <!-- Condensador 1000 µF -->
+  <line x1="560" y1="170" x2="560" y2="196" stroke="#d62828" stroke-width="3"/>
+  <circle class="dot" cx="560" cy="170" r="6" fill="#d62828"/>
+  <line x1="540" y1="198" x2="580" y2="198" stroke="#222" stroke-width="3"/>
+  <path d="M540 210 Q560 202 580 210" stroke="#222" stroke-width="3" fill="none"/>
+  <line x1="560" y1="207" x2="560" y2="232" stroke="#222" stroke-width="3"/>
+  <path class="gnd" d="M560 232 V236 H660 V279" stroke-width="3"/>
+  <circle class="dot" cx="660" cy="279" r="5" fill="#222"/>
+  <text class="pin" x="586" y="196">+</text>
+  <text class="note" x="560" y="128" text-anchor="middle">1000 µF 10 V + 100 nF,</text>
+  <text class="note" x="560" y="144" text-anchor="middle">junto al conector del servo</text>
+
+  <!-- MAX98357A -->
+  <rect class="box" x="720" y="360" width="200" height="190"/>
+  <text class="title" x="820" y="386" text-anchor="middle">MAX98357A</text>
+  <text class="pin" x="728" y="412">VIN</text>
+  <text class="pin" x="728" y="434">GND</text>
+  <text class="pin" x="728" y="456">BCLK</text>
+  <text class="pin" x="728" y="478">LRC</text>
+  <text class="pin" x="728" y="500">DIN</text>
+  <text class="note" x="728" y="522">SD, GAIN: sin conectar</text>
+  <text class="pin" x="912" y="456" text-anchor="end">+</text>
+  <text class="pin" x="912" y="500" text-anchor="end">−</text>
+  <path class="v5" d="M720 407 H620 V170"/>
+  <circle class="dot" cx="620" cy="170" r="6" fill="#d62828"/>
+  <path class="gnd" d="M720 429 H680 V660"/>
+  <circle class="dot" cx="680" cy="660" r="6" fill="#222"/>
+  <path class="sig" stroke="#1971c2" d="M370 388 H580 V451 H720"/>
+  <path class="sig" stroke="#2f9e44" d="M370 418 H560 V473 H720"/>
+  <path class="sig" stroke="#9c36b5" d="M370 448 H540 V495 H720"/>
+
+  <!-- Altavoz -->
+  <rect class="box" x="960" y="420" width="120" height="110"/>
+  <text class="title" x="1020" y="448" text-anchor="middle">Altavoz</text>
+  <text class="pin" x="1020" y="470" text-anchor="middle">8 Ω · 1 W</text>
+  <text class="note" x="1020" y="490" text-anchor="middle">Ø 40 mm máx.</text>
+  <text class="note" x="1020" y="506" text-anchor="middle">20 mm de fondo</text>
+  <path class="sig" stroke="#e8590c" d="M920 451 H960"/>
+  <path class="sig" stroke="#495057" d="M920 495 H960"/>
+
+  <!-- Botón -->
+  <rect class="box" x="720" y="580" width="200" height="56"/>
+  <text class="title" x="820" y="604" text-anchor="middle">Pulsador</text>
+  <text class="note" x="820" y="622" text-anchor="middle">normalmente abierto</text>
+  <path class="sig" stroke="#0c8599" d="M370 498 H520 V595 H720"/>
+  <path class="gnd" d="M820 636 V660" stroke-width="3"/>
+  <circle class="dot" cx="820" cy="660" r="6" fill="#222"/>
+
+  <!-- Leyenda -->
+  <g transform="translate(30 600)">
+    <text class="note" x="0" y="0">Todas las tierras (GND) van juntas.</text>
+    <text class="note" x="0" y="18">El servo y el amplificador toman 5 V</text>
+    <text class="note" x="0" y="36">del raíl, nunca del pin 3V3 del ESP32.</text>
+    <text class="note" x="0" y="54">GPIO4 usa la pull-up interna: no lleva resistencia.</text>
+  </g>
+</svg>
