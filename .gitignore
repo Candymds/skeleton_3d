@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+firmware/.pio/
+firmware/include/secrets.h

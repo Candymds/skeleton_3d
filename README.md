@@ -35,8 +35,9 @@ Para el pedestal:
 
 - 4 insertos de latón M3 (orificio de 4.2 mm, 6 mm de largo) y 4 tornillos M3 × 8 de cabeza avellanada.
 - 300–400 g de lastre (tuercas o arandelas M10–M12, o perdigones en bolsa) y 4 patas de goma adhesivas.
-- Electrónica sugerida: ESP32 (DevKit o S3/C3 mini), batería 18650 con protección y portapilas, módulo de carga USB-C con salida de 5 V y al menos 1 A (tipo IP5306), interruptor de Ø 6 mm, condensador de 1000 µF entre 5 V y GND del servo, alargador de servo de 15 cm.
-- Opcional, para la voz: amplificador I2S MAX98357A y altavoz de 40 mm (4–8 Ω, 2–3 W, hasta 20 mm de fondo).
+- Electrónica (alimentación por USB, sin batería): ESP32 DevKit v1, cargador USB de 5 V y 2 A, USB-C hembra tipo breakout con resistencias de 5,1 kΩ, pulsador normalmente abierto, condensadores de 1000 µF 10 V y 100 nF entre 5 V y GND del servo, alargador de servo de 15 cm.
+- Para la voz: amplificador I2S MAX98357A y altavoz de 40 mm (4–8 Ω, 1–3 W, hasta 20 mm de fondo).
+- Conexiones en [`docs/conexiones.md`](docs/conexiones.md) y firmware en [`firmware/`](firmware/README.md).
 
 ## Ensamblaje (una persona, sin pegar piezas)
 
@@ -58,7 +59,7 @@ El cráneo no se apoya en su base sino en la mandíbula, que cuelga por debajo: 
 
 1. Inserta en caliente los 4 insertos M3 en los pilares de las esquinas del pedestal.
 2. Fija el altavoz (si lo usas) dentro del aro de la tapa inferior, mirando hacia arriba, y pasa sus cables al compartimento derecho por la muesca de la pared del pozo.
-3. Coloca la electrónica: ESP32 en el compartimento izquierdo, amplificador a la derecha, batería y módulo de carga en la bandeja trasera, con el USB-C y el interruptor en sus orificios de la pared trasera. Reparte el lastre en el suelo de los compartimentos laterales.
+3. Coloca la electrónica: ESP32 en el compartimento izquierdo, amplificador a la derecha y el USB-C en su orificio de la pared trasera. El orificio del interruptor puede alojar el pulsador (Ø 6 mm) o quedar tapado. Reparte el lastre en el suelo de los compartimentos laterales.
 4. Cierra con la tapa inferior (4 tornillos M3 × 8) y pega las patas de goma.
 5. Con el cráneo ya montado, baja el cable del servo por el pozo, pásalo por la ranura de la pared trasera del pozo y conéctalo al alargador.
 6. Apoya el cráneo con el aro de la base dentro de la ranura de la placa superior: encaja por los lados y por detrás, y la mandíbula queda colgando dentro del pozo.
